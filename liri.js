@@ -9,23 +9,41 @@ var spotify = new Spotify(keys.spotify);
 var client = new Twitter(keys.twitter);
 
 var input = process.argv[2];
+var key = '';
 
-switch (input) {
-    case 'my-tweets':
-        getTwitter();
-        break;
+startApp(input);
 
-    case 'movie-this':
-        var movie = process.argv[3];
-        if (!process.argv[3]) {
-            movie = 'Mr. Nobody';
-        }
-        var queryURL = "http://www.omdbapi.com/?t=" + movie + "&y=&plot=short&apikey=trilogy";
-        getMovie(queryURL);
-        break;
+function startApp(input) {
+    switch (input) {
+        case 'my-tweets':
+            getTwitter();
+            break;
 
+        case 'movie-this':
+            if (key == '') {
+                 key = process.argv[3];
+            }
+            if (!process.argv[3] && key == '') {
+                key = 'Mr. Nobody';
+            }
+            var queryURL = "http://www.omdbapi.com/?t=" + key + "&y=&plot=short&apikey=trilogy";
+            getMovie(queryURL);
+            break;
 
+        case 'do-what-it-says':
+            fs.readFile("random.txt", "utf8", function (error, data) {
+                if (!error) {
+                    inputArr = data.split(', ');
+                    input = inputArr[0];
+                    key = inputArr[1];
+                    console.log(key);
+                    startApp(input);
+                }
+            })
 
+            break;
+
+    }
 }
 
 
