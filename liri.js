@@ -13,15 +13,19 @@ var key = '';
 
 startApp(input);
 
+//start the app
 function startApp(input) {
     switch (input) {
+
+        //call getTwitter, no paramaters necessary
         case 'my-tweets':
             getTwitter();
             break;
 
+        //move-this command using key variable
         case 'movie-this':
             if (key == '') {
-                 key = process.argv[3];
+                key = process.argv[3];
             }
             if (!process.argv[3] && key == '') {
                 key = 'Mr. Nobody';
@@ -30,19 +34,30 @@ function startApp(input) {
             getMovie(queryURL);
             break;
 
+        case 'spotify-this-song':
+            if (key == '') {
+                key = process.argv[3];
+            }
+            if (!process.argv[3] && key == '') {
+                key = 'The Sign';
+            }
+            var queryURL = 'https://api.spotify.com/v1/search?query=' + key + '&type=track&offset=0&limit=1'
+            getSpotify(queryURL);
+            break;
+
+
+        //do-what-it-says function with recursive call functionality
         case 'do-what-it-says':
             fs.readFile("random.txt", "utf8", function (error, data) {
                 if (!error) {
                     inputArr = data.split(', ');
                     input = inputArr[0];
                     key = inputArr[1];
-                    console.log(key);
+                    //console.log(key);
                     startApp(input);
                 }
             })
-
             break;
-
     }
 }
 
@@ -51,6 +66,7 @@ function getTwitter() {
     var screenName = { screen_name: 'rgaritta' };
     client.get('statuses/user_timeline', screenName, function (error, tweets, response) {
         if (!error) {
+            console.log('---------------');
             console.log(screenName.screen_name + "'s Last 20 Tweets");
             console.log('---------------');
             for (var i = 0; i < 20; i++) {
@@ -63,6 +79,7 @@ function getTwitter() {
 function getMovie(queryURL) {
     request(queryURL, function (error, response, body) {
         if (!error && response.statusCode === 200) {
+            console.log('---------------');
             var title = "Title: " + JSON.parse(body).Title; console.log(title);
             var year = "Year: " + JSON.parse(body).Year; console.log(year);
             var ratingIMDB = "IMDB Rating: " + JSON.parse(body).Ratings[0].Value; console.log(ratingIMDB);
@@ -72,4 +89,18 @@ function getMovie(queryURL) {
             var actors = "Actors: " + JSON.parse(body).Actors; console.log(actors);
         }
     });
+}
+
+function getSpotify(queryURL) {
+    spotify
+        .request(queryURL)
+        .then(function (data) {
+            var artist = "Artist: " + data.tracks.items[0].artists[0].name; console.log(artist);
+            var song = "Song: " + data.tracks.items[0].name; console.log(song);
+            var preview = 'Preview URL: ' + data.tracks.items[0].preview_url; if (preview != null) { console.log(preview); }
+            var album = "Album: " + data.tracks.items[0].album.name; console.log(album);
+        })
+        .catch(function (err) {
+            console.error('Error occurred: ' + err);
+        });
 }
